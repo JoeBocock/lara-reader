@@ -2,12 +2,10 @@
 
 namespace App\Http\Common;
 
-use App\Feed;
 use SimpleXMLElement;
-use Illuminate\Support\Facades\Validator;
 use App\Http\Common\Interfaces\RSSHandlerInterface;
 
-class RSSHandler extends BaseRSSHandler implements RSSHandlerInterface
+final class RSSHandler extends BaseRSSHandler implements RSSHandlerInterface
 {
     /**
      * Version indicator used for checking the current RSS version.
@@ -41,64 +39,64 @@ class RSSHandler extends BaseRSSHandler implements RSSHandlerInterface
         $this->xmlFeed = simplexml_load_file($url);
 
         if (!$this->xmlFeed->attributes()->version[0] || !$this->versionMatches($this->xmlFeed->attributes()->version[0])) {
-            $this->error('RSS feed version not supported.');
-
-            return $this->getFeed();
+            return $this->error('RSS feed version not supported.', 'url');
         }
 
-        $this->data['feed'] = new Feed;
-        $this->data['feed']['title'] = $this->xmlFeed->channel->title;
-        $this->data['feed']['link'] = $this->xmlFeed->channel->link;
+        $this->data['feed'] = $this->buildFeed($url);
 
-        foreach ($this->xmlFeed->channel->item as $feedItem) {
-            $item = [];
+        $this->data['items'] = $this->buildFeedItems();
 
-            $item['title'] = $feedItem->title;
-            $item['link'] = $feedItem->link;
-            $item['description'] = $feedItem->description;
-            $item['publish_date'] = $feedItem->pubDate;
-
-            if ($this->isValidFeedItem($item)) {
-                $this->data['items'][] = $item;
-            }
+        if (empty($this->data['items'])) {
+            return $this->error('The provided feed has no valid items. Please try a different feed.', 'url');
         }
 
         return $this->data;
     }
 
     /**
-     * Build a standard error object and request the return
+     * Build a valid feed object.
      *
-     * @param string $message
+     * @uses RSSHandler->$xmlFeed
+     * @param string $url
      * @return void
      */
-    private function error(string $message) : void
+    private function buildFeed(string $url): array
     {
-        $this->data = [
-            'success' => false,
-            'message' => $message,
+        return [
+            'title' => $this->xmlFeed->channel->title->__toString() ?? '',
+            'link' => $this->xmlFeed->channel->link->__toString() ?? '',
+            'origin' => $url ?? '',
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
         ];
     }
 
     /**
-     * return the current feed object
+     * Build a valid set of feed items.
      *
+     * @uses RSSHandler->$xmlFeed
      * @return array
      */
-    private function getFeed() : array
+    private function buildFeedItems(): array
     {
-        return $this->feed;
-    }
+        $items = [];
+        $date = date('Y-m-d H:i:s');
 
-    public function isValidFeedItem(array $item): bool
-    {
-        $validator = Validator::make($item, [
-            'title' => 'required|string|max_length[255]',
-            'title' => 'required|string|url',
-            'description' => 'required|string',
-            'publish_date' => 'required',
-        ]);
+        foreach ($this->xmlFeed->channel->item as $feedItem) {
+            $item = [
+                'title' => $feedItem->title->__toString() ?? '',
+                'link' => $feedItem->link->__toString() ?? '',
+                'description' => strip_tags($feedItem->description->__toString()) ?? '',
+                'publish_date' => date('Y-m-d H:i:s', strtotime($feedItem->pubDate->__toString()) ?? 0),
+                'created_at' => $date,
+                'updated_at' => $date,
+            ];
 
-        return $validator->errors()->count() > 0;
+            if ($this->isValidFeedItem($item)) {
+                $items[] = $item;
+            }
+        }
+
+        return $items;
     }
 }
