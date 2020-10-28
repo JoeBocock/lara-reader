@@ -100,7 +100,7 @@ function handleLinkButton(event) {
         wipeButtons();
     }
 
-    if (event.altKey && event.target.querySelector('.card-button')) {
+    if (event.altKey && event.target.querySelector('.card-button') && elementHadValidClass(event)) {
         event.target.querySelector('.card-button').style.display = 'inline-flex';
         activeElement = event.target;
     }
@@ -113,4 +113,15 @@ function wipeButtons() {
     Array.from(document.getElementsByClassName('card-button')).forEach((element) => {
         element.style.display = 'none';
     });
+}
+
+/**
+ * Check if the event has a valid class on element.
+ *
+ * @param {Event} event
+ */
+function elementHadValidClass(event) {
+    let classList = Array.from(event.target.classList);
+
+    return (classList.includes('description-container') || classList.includes('terminal-alert'));
 }
