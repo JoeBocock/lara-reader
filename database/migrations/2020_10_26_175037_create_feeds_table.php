@@ -17,6 +17,7 @@ class CreateFeedsTable extends Migration
             $table->id();
             $table->string('title');
             $table->string('link');
+            $table->string('origin');
             $table->timestamps();
         });
     }

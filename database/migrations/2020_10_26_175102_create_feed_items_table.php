@@ -20,8 +20,8 @@ class CreateFeedItemsTable extends Migration
             $table->unsignedBigInteger('feed_id');
             $table->string('title');
             $table->string('link');
-            $table->string('description');
-            $table->string('publish_date');
+            $table->text('description');
+            $table->timestamp('publish_date');
             $table->timestamps();
         });
     }
