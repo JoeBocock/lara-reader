@@ -19,8 +19,8 @@ class Feed extends Model
 
         foreach ($feeds as $feed) {
             $pariedFeeds[] = [
-                'feed_title' => $feed->title,
-                'feed_link' => $feed->link,
+                'title' => $feed->title,
+                'link' => $feed->link,
                 'items' => $feed->items,
             ];
         }

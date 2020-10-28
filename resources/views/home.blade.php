@@ -40,7 +40,7 @@
 @foreach ($feeds as $feed) @foreach ($feed['items'] as $item)
 
 <div class="terminal-card">
-    <header>[{{ $feed['feed_title'] }}] {{ $item['title'] }}</header>
+    <header>[{{ $feed['title'] }}] {{ $item['title'] }}</header>
     <div class="description-container">
         <div class="terminal-alert">
             Publish Date: {{ $item['publish_date'] }}
