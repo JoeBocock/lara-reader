@@ -25,7 +25,19 @@ class StoreFeedRequest extends FormRequest
     public function rules()
     {
         return [
-            'url' => ['required', 'url', new RSSFeed()],
+            'url' => ['required', 'url', 'unique:feeds,origin', new RSSFeed()],
+        ];
+    }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array
+     */
+    public function messages()
+    {
+        return [
+            'url.unique' => 'You\'re already subscribed to that feed.',
         ];
     }
 }
